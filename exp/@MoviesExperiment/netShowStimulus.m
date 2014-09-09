@@ -11,6 +11,7 @@ stimTime = getParam(e,'stimulusTime');
 postStimTime = getParam(e,'postStimulusTime');
 magnification = getParam(e,'magnification');
 clipLength = getParam(e,'clipLength');
+diskSize = getParam(e,'diskSize');
 
 % set time to desired start
 Screen('SetMovieTimeIndex', movie, 0);
@@ -26,8 +27,8 @@ if magnification < 0    % show full screen movie
 end
 
 destRect = magnification * ...
-            [-frameSize(1) -frameSize(2) frameSize(1) frameSize(2)]/2 + ...
-            [centerX centerY centerX centerY];
+    [-frameSize(1) -frameSize(2) frameSize(1) frameSize(2)]/2 + ...
+    [centerX centerY centerX centerY];
 
 % return function call
 tcpReturnFunctionCall(e,int32(0),struct,'netShowStimulus');
@@ -38,61 +39,73 @@ Screen('PlayMovie', movie, 1, 0, 0.0);
 % intializations
 startTime = GetSecs;
 times = NaN(10,1);
-i = 1; 
+i = 1;
 running = true;
 first = true;
+
+%%%% Added 2014-09-08 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+alphaRect = [centerX centerY centerX centerY] + [-1 -1 1 1] * e.alphaMaskSize;
+alphaMask = Screen('MakeTexture',win,e.alphaMask{e.alphaDiskSize == diskSize});
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 
 while running
     
     
-  % check for abort signal
-  [e,abort] = tcpMiniListener(e,{'netAbortTrial','netTrialOutcome'});
-  if abort
-      fprintf('stimulus was aborted.......\n')
-      break
-  end
-
-  % get next movie frame
-  [tex times(i)] = Screen('GetMovieImage', win, movie, 1); 
-
-  % check whether a valid texture was returned  
-  if tex<=0
-    display('Invalid texture returned.') %error('Invalid texture returned.')
-  end;
-
-  % draw the texture on the screen
-  Screen('DrawTexture',win,tex,[],destRect,0,[],1); 
-  e = swap(e);
- 
-  % close the texture
-  Screen('Close',tex);
-
-  % compute startTime
-  if first
-      startTime = getLastSwap(e);
-      e = addEvent(e,'showStimulus',startTime);
-      first = false;
-  end
-  
-  % compute timeout
-  running = (getSecs - startTime) < clipLength;
-  % running = (Screen('GetMovieTimeIndex', movie) - clipStartTime) < clipLength;
-  
-  i = i + 1;
+    % check for abort signal
+    [e,abort] = tcpMiniListener(e,{'netAbortTrial','netTrialOutcome'});
+    if abort
+        fprintf('stimulus was aborted.......\n')
+        break
+    end
+    
+    % get next movie frame
+    [tex, times(i)] = Screen('GetMovieImage', win, movie, 1);
+    
+    % check whether a valid texture was returned
+    if tex<=0
+        display('Invalid texture returned.') %error('Invalid texture returned.')
+    end;
+    
+    % draw the texture on the screen
+    %     Screen('DrawTexture',win,tex,[],destRect); %2014-09-08
+    
+    %%%% Added 2014-09-08 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    % draw circular aperture
+    Screen('DrawTextures',win,[tex alphaMask],[],[destRect; alphaRect]');
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    
+    % flip
+    e = swap(e);
+    
+    % close the texture
+    Screen('Close',tex);
+    
+    % compute startTime
+    if first
+        startTime = getLastSwap(e);
+        e = addEvent(e,'showStimulus',startTime);
+        first = false;
+    end
+    
+    % compute timeout
+    running = (getSecs - startTime) < clipLength;
+    
+    i = i + 1;
 end
 
 e = setTrialParam(e,'presentedStimTimes',times);
 e = setTrialParam(e,'clipLength',clipLength);
-    
+
 % keep fixation spot after stimulus turns off
 if ~abort
-
+    
     drawFixSpot(e);
     e = swap(e);
-
+    
     % log stimulus offset event
     e = addEvent(e,'endStimulus',getLastSwap(e));
-
+    
     while (GetSecs-startTime)*1000 < stimTime+postStimTime;
         % check for abort signal
         [e,abort] = tcpMiniListener(e,{'netAbortTrial','netTrialOutcome'});

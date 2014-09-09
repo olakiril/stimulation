@@ -17,6 +17,12 @@ movieStat = e.movieStat{getParam(e,'movieStat')};
 trTrigger = getParam(e,'trialTrigger');
 display(num2str(trTrigger))
 retStruct.trialTrigger = trTrigger;
+
+%%%% Added 2014-09-08 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+diskSize = getParam(e,'diskSize');
+retStruct.diskSize = diskSize;
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 % initialize movie
 win = get(e,'win');
 filename = getLocalPath(sprintf('%s%s%d_%s.avi',moviePath, ...
@@ -26,7 +32,7 @@ disp(filename)
 e = setTrialParam(e,'filename',filename);
             
 tic 
-[movie movieduration fps imgw imgh] = Screen('OpenMovie', win, filename);
+[movie, movieduration, fps, imgw, imgh] = Screen('OpenMovie', win, filename);
 toc
 
 e.frameSize = [imgw imgh];
