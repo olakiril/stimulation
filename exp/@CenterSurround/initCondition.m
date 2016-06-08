@@ -52,5 +52,5 @@ assert(x0 >= 0 && x255 <= 255 ,'CenterSurroundExperiment:invalidContrast', ...
 % intensity values 0 and 255 are reserved for the PhotodiodeTimer; the
 % remaining values are fully used by the grating and contrast+luminance are
 % adjusted by manipulating the gamma table
-modGammaTab = interp1(0:255,gammaTab,linspace(x0,x255,254),'cubic');
+modGammaTab = interp1(0:255,gammaTab,linspace(x0,x255,254),'PCHIP');
 e.gammaTables(:,cond) = [0; modGammaTab'; 1]; 

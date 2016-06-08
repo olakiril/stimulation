@@ -69,8 +69,8 @@ for i = 1:nFrames*stimFrames
     end
     e.alphaBorder(:,:,1) = repmat(vgrat,[length(vgrat), 1,1]);
     
-    % set luminance via gamma table manipulation
-    Screen('LoadNormalizedGammaTable',win,repmat(e.gammaTables(:,conds(k)),1,3),1);
+%     % set luminance via gamma table manipulation
+%     Screen('LoadNormalizedGammaTable',win,repmat(e.gammaTables(:,conds(k)),1,3),1);
     
     % move grating
     u = mod(phase,period) - period/2;
@@ -99,7 +99,7 @@ for i = 1:nFrames*stimFrames
     Screen('DrawTexture',win,textW,[],destRect,orientationIn+270,[],alphaIn)
     
     % fixation spot
-    drawFixspot(e);
+    drawFixSpot(e);
     e = swap(e);
     
     % compute startTime

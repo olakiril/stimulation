@@ -1,5 +1,5 @@
 function [e,retInt32,retStruct,returned] = netShowStimulus(e,params)
-
+tic
 % some member variables
 win = get(e,'win');
 rect = Screen('Rect',win);
@@ -12,10 +12,8 @@ postStimTime = getParam(e,'postStimulusTime');
 magnification = getParam(e,'magnification');
 clipLength = getParam(e,'clipLength');
 diskSize = getParam(e,'diskSize');
-
-% set time to desired start
-Screen('SetMovieTimeIndex', movie, 0);
-
+toc
+tic
 % size of the movie and magnification
 frameSize = e.frameSize;
 centerX = mean(rect([1 3])) + location(1);
@@ -32,25 +30,31 @@ destRect = magnification * ...
 
 % return function call
 tcpReturnFunctionCall(e,int32(0),struct,'netShowStimulus');
-
-% start movie playback
-Screen('PlayMovie', movie, 1, 0, 0.0);
-
+toc
+tic
 % intializations
 startTime = GetSecs;
 times = NaN(10,1);
 i = 1;
 running = true;
 first = true;
+toc 
+tic
 
 %%%% Added 2014-09-08 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 alphaRect = [centerX centerY centerX centerY] + [-1 -1 1 1] * e.alphaMaskSize;
 alphaMask = Screen('MakeTexture',win,e.alphaMask{e.alphaDiskSize == diskSize});
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+toc
+
+% set time to desired start
+Screen('SetMovieTimeIndex', movie, 0);
+
+% start movie playback
+Screen('PlayMovie', movie, 1, 0, 0.0);
 
 while running
-    
     
     % check for abort signal
     [e,abort] = tcpMiniListener(e,{'netAbortTrial','netTrialOutcome'});
@@ -89,11 +93,11 @@ while running
     end
     
     % compute timeout
-    running = (getSecs - startTime) < clipLength;
+    running = (GetSecs - startTime) < clipLength;
     
     i = i + 1;
 end
-
+Screen('SetMovieTimeIndex', movie, 0);
 e = setTrialParam(e,'presentedStimTimes',times);
 e = setTrialParam(e,'clipLength',clipLength);
 

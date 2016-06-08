@@ -4,8 +4,10 @@ function [e,retInt32,retStruct,returned] = netStartSession(e,params)
 [e,retInt32,retStruct,returned] = initSession(e,params);
 
 % set gamma calibration to original value (overwrite)
-origGt = get(e,'origGammaTable');
-Screen('LoadNormalizedGammaTable',get(e,'win'), origGt);
+if ~params.normalizedGamma
+    origGt = get(e,'origGammaTable');
+    Screen('LoadNormalizedGammaTable',get(e,'win'), origGt);
+end
 
 % make the photodiode larger
 e = set(e,'photoDiodeTimer',PhotoDiodeTimer(params.stimulusTime/1000*60,[0 255],50));
@@ -46,5 +48,35 @@ for i = 1:nDiskSizes
 %     %strange reason building this texture beforhand fails sometimes
     e.alphaDiskSize(i) = diskSize;
 end
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%% Added 2015-01-05 to preload the movies %%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% 
+% movieFile = getParam(e,'movieName');
+% moviePath = getParam(e,'moviePath');
+% movieNumber = params.movieNumber;
+% movieStat = e.movieStat;
+% 
+% for imovie = movieStat
+%     for inum = movieNumber
+% 
+%         % initialize movie
+%         filename = getLocalPath(sprintf('%s%s%d_%s.avi',moviePath, ...
+%                         movieFile,inum,imovie{1}));
+% 
+%         disp(filename)
+% 
+%         tic 
+%         [movie, foo, foo2, imgw, imgh] = Screen('OpenMovie', win, filename);
+%         toc
+% 
+%         eval(['e.stimInfo.' (imovie{1}) '_' num2str(inum) '.movie = movie;'])
+%         eval(['e.stimInfo.' (imovie{1}) '_' num2str(inum) '.imgw = imgw;'])
+%         eval(['e.stimInfo.' (imovie{1}) '_' num2str(inum) '.imgh = imgh;'])
+% 
+%     end
+% end
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
